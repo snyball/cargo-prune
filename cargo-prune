@@ -1,0 +1,18 @@
+#!/bin/bash
+
+ref="${XDG_RUNTIME_DIR:-/tmp}/cargo-prune-since"
+when="${1:-1 week ago}"
+where="${2:-.}"
+
+touch -d "$when" "$ref"
+
+find "$where" -type f -name Cargo.toml \
+    -exec bash \
+    -c 'cd "$(dirname "$2")"; [[ -d target ]] && [[ target -ot "$1" ]] && echo $2' \
+    -- "$ref" {} \; \
+    | while read -r f; do
+    pushd "$(dirname "$f")" &>/dev/null
+    echo "[$(whoami)@$(hostname) $(dirs +0)]"\$ cargo clean
+    cargo clean
+    popd &>/dev/null
+done
