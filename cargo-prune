@@ -4,7 +4,12 @@ ref="${XDG_RUNTIME_DIR:-/tmp}/cargo-prune-since"
 when="${1:-1 week ago}"
 where="${2:-.}"
 
-touch -d "$when" "$ref"
+if ! touch -d "$when" "$ref"; then
+    touch --version | head -n1 | grep 'GNU coreutils' >/dev/null || \
+        echo 'warning: You do not have the GNU coreutils version of `touch`,' \
+        'it supports time strings like "1 week ago" (see `man touch`)'
+    exit 1
+fi
 
 find "$where" -type f -name Cargo.toml \
     -exec bash \
